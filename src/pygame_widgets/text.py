@@ -15,6 +15,7 @@ pg.font.init()
 
 _BlitTarget = t.Tuple[pg.surface.Surface, t.Tuple[int, int]]
 
+
 class TextAlign(enum.Enum):
     '''
     An enum used in `TextConfig.align`.
@@ -24,6 +25,7 @@ class TextAlign(enum.Enum):
     LEFT = enum.auto()
     RIGHT = enum.auto()
     CENTER = enum.auto()
+
 
 @dataclasses.dataclass
 class TextConfig:
@@ -43,6 +45,7 @@ class TextConfig:
     tab_size: int = 4
     margin: pg.Rect = pg.Rect(0, 0, 0, 0)
 
+
 class Text(pg.sprite.DirtySprite):
     '''
     A widget that lets you display text with
@@ -59,7 +62,10 @@ class Text(pg.sprite.DirtySprite):
         self.config = config
 
         self._render_image()
-        self.rect = pg.Rect(pos[0], pos[1], *t.cast(pg.Surface, self.image).get_size())
+        self.rect = pg.Rect(
+            pos[0],
+            pos[1],
+            *t.cast(pg.Surface, self.image).get_size())
 
         self.dirty = 1
 
@@ -93,7 +99,7 @@ class Text(pg.sprite.DirtySprite):
             (x.get_height() for x in line_surfaces),
             initial=margin.top)
 
-        blit_target_create_func: t.Callable[[pg.surface.Surface, int], _BlitTarget]
+        blit_target_create_func: t.Callable[[pg.surface.Surface, int], _BlitTarget]  # noqa: E501
         if self.config.align == TextAlign.LEFT:
             blit_target_create_func = self._create_blit_target_left
         elif self.config.align == TextAlign.RIGHT:
@@ -104,12 +110,16 @@ class Text(pg.sprite.DirtySprite):
             assert False, 'unreachable'
 
         blit_targets = [
-            blit_target_create_func(surf, y_offset + self.config.line_spacing * idx)
+            blit_target_create_func(
+                surf,
+                y_offset + self.config.line_spacing * idx)
             for (idx, surf, y_offset)
             in zip(range(surfaces_count), line_surfaces, y_offsets)]
-        self.image.blits(blit_targets, False) #type: ignore
+        self.image.blits(blit_targets, False)  # type: ignore
 
-    def _create_blit_target_left(self, surf: pg.surface.Surface, _y_offset: int) -> _BlitTarget:
+    def _create_blit_target_left(self,
+                                 surf: pg.surface.Surface,
+                                 _y_offset: int) -> _BlitTarget:
         return (
             surf,
             (
@@ -117,7 +127,9 @@ class Text(pg.sprite.DirtySprite):
                 _y_offset)
             )
 
-    def _create_blit_target_right(self, surf: pg.surface.Surface, _y_offset: int) -> _BlitTarget:
+    def _create_blit_target_right(self,
+                                  surf: pg.surface.Surface,
+                                  _y_offset: int) -> _BlitTarget:
         width = t.cast(pg.Surface, self.image).get_width()
         return (
             surf,
@@ -126,9 +138,12 @@ class Text(pg.sprite.DirtySprite):
                 _y_offset)
             )
 
-    def _create_blit_target_center(self, surf: pg.surface.Surface, _y_offset: int) -> _BlitTarget:
+    def _create_blit_target_center(self,
+                                   surf: pg.surface.Surface,
+                                   _y_offset: int) -> _BlitTarget:
         margin = self.config.margin
-        width = t.cast(pg.Surface, self.image).get_width() - margin.left - margin.width
+        img_width = t.cast(pg.Surface, self.image).get_width()
+        width = img_width - margin.left - margin.width
         return (
             surf,
             (

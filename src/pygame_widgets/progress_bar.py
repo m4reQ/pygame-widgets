@@ -9,6 +9,7 @@ import math
 
 import pygame as pg
 
+
 @dataclasses.dataclass
 class ProgressBarConfig:
     '''
@@ -20,6 +21,7 @@ class ProgressBarConfig:
     bar_color: pg.Color = pg.Color(0, 255, 0, 255)
     bar_image: t.Optional[pg.Surface] = None
 
+
 class ProgressBar(pg.sprite.DirtySprite):
     '''
     A widget that lets you display current
@@ -30,7 +32,7 @@ class ProgressBar(pg.sprite.DirtySprite):
     def __init__(self,
                  rect: pg.Rect,
                  max_progress: int,
-                 config: ProgressBarConfig) -> None:
+                 config: ProgressBarConfig):
         super().__init__()
 
         self.config = config
@@ -39,7 +41,9 @@ class ProgressBar(pg.sprite.DirtySprite):
 
         self._bar_image: t.Optional[pg.Surface] = None
         if config.bar_image:
-            self._bar_image = pg.transform.smoothscale(config.bar_image, self.rect.size)
+            self._bar_image = pg.transform.smoothscale(
+                config.bar_image,
+                self.rect.size)
 
         self._progress = 0
 
@@ -55,6 +59,7 @@ class ProgressBar(pg.sprite.DirtySprite):
             math.ceil(rect.width / self.max_progress * self._progress),
             rect.width)
 
+        # pylint: disable=disallowed-name
         bar: pg.Surface
         if self._bar_image:
             bar = self._bar_image.subsurface(0, 0, bar_width, rect.height)
