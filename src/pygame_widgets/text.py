@@ -91,7 +91,11 @@ class Text(pg.sprite.DirtySprite):
         img_width = max(x.get_width() for x in line_surfaces)\
             + margin.left + margin.width
 
-        self.image = pg.Surface((img_width, img_height), flags=pg.SRCALPHA)
+        _flags = 0
+        if self.config.bg_color.a != 255 or self.config.text_color.a != 255:
+            _flags = pg.SRCALPHA
+
+        self.image = pg.Surface((img_width, img_height), flags=_flags)
         if self.config.bg_color:
             self.image.fill(self.config.bg_color)
 
