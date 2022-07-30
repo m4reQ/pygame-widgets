@@ -1,6 +1,7 @@
-.mypy_cache
-venv
-__pycache__
-dist
-*.egg-info
-.vscode
+**/.mypy_cache
+**/.venv
+**/__pycache__
+**/dist
+**/*.egg-info
+**/.vscode
+**/tests.py

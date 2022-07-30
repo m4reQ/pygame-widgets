@@ -4,10 +4,11 @@ progress display.
 '''
 
 import dataclasses
-import typing as t
 import math
 
 import pygame as pg
+
+from pygame_widgets.widget import WidgetBase
 
 
 @dataclasses.dataclass
@@ -19,10 +20,11 @@ class ProgressBarConfig:
 
     bg_color: pg.Color = pg.Color(0, 0, 0, 255)
     bar_color: pg.Color = pg.Color(0, 255, 0, 255)
-    bar_image: t.Optional[pg.Surface] = None
+    bar_image: pg.Surface | None = None
+    use_progress_as_mask: bool = False
 
 
-class ProgressBar(pg.sprite.DirtySprite):
+class ProgressBar(WidgetBase):
     '''
     A widget that lets you display current
     state of some tasks like loading resources in form
@@ -32,44 +34,51 @@ class ProgressBar(pg.sprite.DirtySprite):
     def __init__(self,
                  rect: pg.Rect,
                  max_progress: int,
-                 config: ProgressBarConfig):
+                 config: ProgressBarConfig=ProgressBarConfig()):
         super().__init__()
 
         self.config = config
-        self.rect = rect
+        self.rect: pg.Rect = rect
         self.max_progress = max_progress
-
-        self._bar_image: t.Optional[pg.Surface] = None
-        if config.bar_image:
-            self._bar_image = pg.transform.smoothscale(
-                config.bar_image,
-                self.rect.size)
 
         self._progress = 0
 
-        self._render_image()
+        self._bg_image = self._render_bg_image()
+        self.image = self._bg_image
 
-    def _render_image(self) -> None:
-        rect = t.cast(pg.Rect, self.rect)
+    def _render_bg_image(self) -> pg.Surface:
+        bg_color = self.config.bg_color
+        bar_image = self.config.bar_image
 
-        self.image = pg.Surface(rect.size, pg.SRCALPHA)
-        self.image.fill(self.config.bg_color)
+        img: pg.Surface
+        if bar_image:
+            if bar_image.get_size() != self.rect.size:
+                img = pg.transform.smoothscale(bar_image, self.rect.size)
+            else:
+                img = bar_image
+        else:
+            img = pg.Surface(self.rect.size, pg.SRCALPHA if bg_color.a != 255 else 0)
+            img.fill(bg_color, pg.Rect(0, 0, *img.get_size()))
+
+        return img
+
+    def redraw(self) -> None:
+        super().redraw()
 
         bar_width = min(
-            math.ceil(rect.width / self.max_progress * self._progress),
-            rect.width)
+            math.ceil(self.rect.width / self.max_progress * self._progress),
+            self.rect.width)
 
-        # pylint: disable=disallowed-name
-        bar: pg.Surface
-        if self._bar_image:
-            bar = self._bar_image.subsurface(0, 0, bar_width, rect.height)
+        if self.config.use_progress_as_mask:
+            self.image = self._bg_image.subsurface(0, 0, bar_width, self.rect.height)
         else:
-            bar = pg.Surface((bar_width, rect.height), pg.SRCALPHA)
-            bar.fill(self.config.bar_color)
+            self.image = self._bg_image
 
-        self.image.blit(bar, (0, 0))
+            bar_color = self.config.bar_color
 
-        self.dirty = 1
+            bar_image = pg.Surface((bar_width, self.rect.height), pg.SRCALPHA if bar_color.a != 255 else 0)
+            bar_image.fill(bar_color)
+            self.image.blit(bar_image, (0, 0))
 
     def increment_progress(self) -> None:
         '''
@@ -80,7 +89,7 @@ class ProgressBar(pg.sprite.DirtySprite):
             return
 
         self._progress += 1
-        self._render_image()
+        self.needs_redraw = True
 
     def reset_progress(self) -> None:
         '''
@@ -88,7 +97,7 @@ class ProgressBar(pg.sprite.DirtySprite):
         '''
 
         self._progress = 0
-        self._render_image()
+        self.needs_redraw = True
 
     @property
     def progress(self) -> int:
