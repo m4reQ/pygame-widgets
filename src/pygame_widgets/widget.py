@@ -8,7 +8,7 @@ from pygame_widgets import internal
 
 class WidgetBase(pg.sprite.DirtySprite, abc.ABC):
     def __init__(self,
-                 event_handlers: list[tuple[int, internal._HandlerType]] = []) -> None: # noqa
+                 event_handlers: t.List[t.Tuple[int, internal._HandlerType]] = []) -> None: # noqa
         super().__init__()
 
         self.needs_redraw = False
@@ -20,7 +20,7 @@ class WidgetBase(pg.sprite.DirtySprite, abc.ABC):
         pass
 
     def _register_event_handlers(self,
-                                 handlers: list[tuple[int, internal._HandlerType]]) -> None: # noqa
+                                 handlers: t.List[t.Tuple[int, internal._HandlerType]]) -> None: # noqa
         for _type, handler in handlers:
             internal.add_event_handler(_type, handler)
 
@@ -29,7 +29,7 @@ _StateType = t.TypeVar('_StateType')
 
 
 class StateHandle(t.Generic[_StateType], abc.ABC):
-    _state: _StateType | None = None
+    _state: t.Optional[_StateType] = None
     _state_changed: bool = False
 
     @property

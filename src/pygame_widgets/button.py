@@ -28,7 +28,7 @@ class ButtonConfig:
     font: pg.font.Font = pg.font.SysFont('Consolas', 24)
     bg_color_active: pg.Color = pg.Color(255, 255, 255, 255)
     bg_color_inactive: pg.Color = pg.Color(255, 255, 255, 255)
-    background_image: pg.Surface | None = None
+    background_image: t.Optional[pg.Surface] = None
     activate_on_hover: bool = False
     center_text: bool = False
     is_disabled: bool = False

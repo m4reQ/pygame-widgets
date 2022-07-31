@@ -1,9 +1,11 @@
+import typing as t
+
 import pygame as pg
 
 
-def collide_point(point: tuple[int, int],
+def collide_point(point: t.Tuple[int, int],
                   rect: pg.Rect,
-                  mask: pg.Mask | None = None) -> bool:
+                  mask: t.Optional[pg.Mask] = None) -> bool:
     if not rect.collidepoint(point):
         return False
 

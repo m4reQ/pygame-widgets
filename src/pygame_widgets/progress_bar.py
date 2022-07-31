@@ -5,6 +5,7 @@ progress display.
 
 import dataclasses
 import math
+import typing as t
 
 import pygame as pg
 
@@ -20,7 +21,7 @@ class ProgressBarConfig:
 
     bg_color: pg.Color = pg.Color(0, 0, 0, 255)
     bar_color: pg.Color = pg.Color(0, 255, 0, 255)
-    bar_image: pg.Surface | None = None
+    bar_image: t.Optional[pg.Surface] = None
     use_progress_as_mask: bool = False
 
 

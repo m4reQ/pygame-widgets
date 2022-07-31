@@ -15,8 +15,8 @@ class RadioButtonConfig:
     '''
 
     color: pg.Color = pg.Color(255, 255, 255, 255)
-    active_image: pg.Surface | None = None
-    inactive_image: pg.Surface | None = None
+    active_image: t.Optional[pg.Surface] = None
+    inactive_image: t.Optional[pg.Surface] = None
     activate_button: int = 0
     collide_on_mask: bool = True
     on_click: t.Callable[[], t.Any] = lambda: None

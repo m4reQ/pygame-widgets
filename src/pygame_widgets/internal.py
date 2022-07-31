@@ -23,7 +23,7 @@ def call_after(func: t.Callable[[], t.Any], seconds: float) -> None:
     _after_calls.append((func, time.perf_counter(), seconds))
 
 
-def update(events: t.Iterable[pg.event.Event] | None) -> dict[str, float]: # noqa
+def update(events: t.Optional[t.Iterable[pg.event.Event]]) -> t.Dict[str, float]: # noqa
     '''
     Internally processes all events allowing widgets to response to user input.
     NOTE:
@@ -39,7 +39,7 @@ def update(events: t.Iterable[pg.event.Event] | None) -> dict[str, float]: # noq
     @events: List of current frame events.
     '''
 
-    times: dict[str, float] = {}
+    times: t.Dict[str, float] = {}
 
     if events is None:
         times['events'] = 0.0
@@ -69,6 +69,6 @@ def _invoke_event(event: pg.event.Event) -> None:
         handler(event)
 
 
-_event_handlers = defaultdict[int, list[_HandlerType]](list)
+_event_handlers: defaultdict[int, list[_HandlerType]] = defaultdict(list)
 _scheduled_calls = queue.Queue[t.Callable[[], t.Any]]()
-_after_calls: list[tuple[t.Callable[[], t.Any], float, float]] = []
+_after_calls: t.List[t.Tuple[t.Callable[[], t.Any], float, float]] = []
