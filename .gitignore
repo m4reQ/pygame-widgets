@@ -5,3 +5,4 @@
 **/*.egg-info
 **/.vscode
 **/tests.py
+**/testing

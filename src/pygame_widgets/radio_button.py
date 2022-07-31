@@ -1,3 +1,4 @@
+# TODO: Add documentation # noqa
 import dataclasses
 import typing as t
 
@@ -6,10 +7,13 @@ import pygame as pg
 from pygame_widgets import utils
 from pygame_widgets.widget import StateHandle, WidgetBase
 
-# TODO: Add documentation
 
 @dataclasses.dataclass
 class RadioButtonConfig:
+    '''
+    Configuration structure for `RadioButton` widget.
+    '''
+
     color: pg.Color = pg.Color(255, 255, 255, 255)
     active_image: pg.Surface | None = None
     inactive_image: pg.Surface | None = None
@@ -17,8 +21,11 @@ class RadioButtonConfig:
     collide_on_mask: bool = True
     on_click: t.Callable[[], t.Any] = lambda: None
 
+
 class RadioButton(WidgetBase, StateHandle[bool]):
-    def __init__(self, rect: pg.Rect, config: RadioButtonConfig=RadioButtonConfig()) -> None:
+    def __init__(self,
+                 rect: pg.Rect,
+                 config: RadioButtonConfig = RadioButtonConfig()) -> None:
         super().__init__([(pg.MOUSEBUTTONDOWN, self._mouse_click_cb)])
 
         self.config = config
@@ -75,8 +82,17 @@ class RadioButton(WidgetBase, StateHandle[bool]):
             width = int(side // 10)
             center = img.get_rect().center
 
-            pg.draw.circle(img, config.color, center, (side // 2), width)
-            pg.draw.circle(img, config.color, center, (side // 2) - width * 2)
+            pg.draw.circle(
+                img,
+                config.color,
+                center,
+                (side // 2),
+                width)
+            pg.draw.circle(
+                img,
+                config.color,
+                center,
+                (side // 2) - width * 2)
 
             return img
 
@@ -85,7 +101,11 @@ class RadioButton(WidgetBase, StateHandle[bool]):
 
         img = pg.Surface((side, side), pg.SRCALPHA)
         img.fill(pg.Color(0, 0, 0, 0))
-        pg.draw.circle(img, pg.Color(255, 255, 255, 255), img.get_rect().center, (side // 2))
+        pg.draw.circle(
+            img,
+            pg.Color(255, 255, 255, 255),
+            img.get_rect().center,
+            (side // 2))
 
         return pg.mask.from_surface(img, threshold=0)
 
@@ -97,11 +117,10 @@ class RadioButton(WidgetBase, StateHandle[bool]):
         self.state = not self.state
         self.redraw()
 
-    def redraw(self, *args, **kwargs) -> None:
+    def redraw(self) -> None:
         if self.state:
             self.image = self._active_image
         else:
             self.image = self._inactive_image
 
         self.dirty = 1
-

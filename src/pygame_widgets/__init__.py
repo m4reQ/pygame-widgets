@@ -6,6 +6,7 @@ from .button import Button, ButtonConfig
 from .internal import update
 from .list_view import ListView, ListViewConfig
 from .progress_bar import ProgressBar, ProgressBarConfig
+from .radio_button import RadioButton, RadioButtonConfig
 from .text import Text, TextAlign, TextConfig
 
 __all__ = [
@@ -18,11 +19,7 @@ __all__ = [
     'ButtonConfig',
     'ListViewConfig',
     'ListView',
+    'RadioButton',
+    'RadioButtonConfig',
     'update'
 ]
-
-
-def init():
-    '''
-    Initializes pygame_widgets module.
-    '''

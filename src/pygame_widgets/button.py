@@ -8,10 +8,9 @@ import typing as t
 
 import pygame as pg
 
-from pygame_widgets import internal, utils
+from pygame_widgets import utils
 from pygame_widgets.widget import StateHandle, WidgetBase
 
-pg.font.init()
 
 @dataclasses.dataclass
 class ButtonConfig:
@@ -39,10 +38,12 @@ class ButtonConfig:
     on_hover: t.Callable[[], t.Any] = lambda: None
     on_release: t.Callable[[], t.Any] = lambda: None
 
+
 class _ButtonState(enum.Enum):
     ACTIVE = enum.auto()
     INACTIVE = enum.auto()
     HOVER = enum.auto()
+
 
 class Button(WidgetBase, StateHandle[_ButtonState]):
     '''
@@ -54,7 +55,7 @@ class Button(WidgetBase, StateHandle[_ButtonState]):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, rect: pg.Rect, config: ButtonConfig=ButtonConfig()):
+    def __init__(self, rect: pg.Rect, config: ButtonConfig = ButtonConfig()):
         super().__init__([
             (pg.MOUSEBUTTONDOWN, self._mouse_click_cb),
             (pg.MOUSEBUTTONUP, self._mouse_release_cb),
@@ -75,7 +76,7 @@ class Button(WidgetBase, StateHandle[_ButtonState]):
         self._active_image = self._render_image(True)
 
         self.image = self._inactive_image
-        self.mask = pg.mask.from_surface(self.image, threshold=0) if config.collide_on_mask else None
+        self.mask = pg.mask.from_surface(self.image, threshold=0) if config.collide_on_mask else None # noqa
 
         self.state = _ButtonState.INACTIVE
 
@@ -84,7 +85,9 @@ class Button(WidgetBase, StateHandle[_ButtonState]):
 
         img: pg.Surface
         if config.background_image:
-            img = pg.transform.smoothscale(config.background_image, self.rect.size)
+            img = pg.transform.smoothscale(
+                config.background_image,
+                self.rect.size)
         else:
             img = pg.Surface(self.rect.size, pg.SRCALPHA)
 
@@ -134,7 +137,8 @@ class Button(WidgetBase, StateHandle[_ButtonState]):
             self.state = _ButtonState.INACTIVE
 
         # TODO: Remove unnecessary draw getting called when transitioning
-        # from hover to inactive even if _activate_on_hover is set to False (no change in image)
+        # from hover to inactive even if _activate_on_hover
+        # is set to False (no change in image)
         if self.state_changed:
             self.redraw()
 
@@ -164,11 +168,11 @@ class Button(WidgetBase, StateHandle[_ButtonState]):
         if self.state_changed:
             self.redraw()
 
-    def redraw(self, *args, **kwargs) -> None:
+    def redraw(self) -> None:
         if self.state == _ButtonState.INACTIVE:
             self.image = self._inactive_image
             self.dirty = 1
-        elif self.state == _ButtonState.ACTIVE or (self.state == _ButtonState.HOVER and self._activate_on_hover):
+        elif self.state == _ButtonState.ACTIVE or (self.state == _ButtonState.HOVER and self._activate_on_hover): # noqa
             self.image = self._active_image
             self.dirty = 1
 

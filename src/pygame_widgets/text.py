@@ -12,9 +12,8 @@ import pygame as pg
 
 from pygame_widgets.widget import WidgetBase
 
-pg.font.init()
-
 _BlitTarget = t.Tuple[pg.surface.Surface, t.Tuple[int, int]]
+
 
 class TextAlign(enum.Enum):
     '''
@@ -26,9 +25,11 @@ class TextAlign(enum.Enum):
     RIGHT = enum.auto()
     CENTER = enum.auto()
 
+
 class TextFit(enum.Enum):
     FIT = enum.auto()
     EXPAND = enum.auto()
+
 
 @dataclasses.dataclass
 class TextConfig:
@@ -59,7 +60,10 @@ class Text(WidgetBase):
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, rect: pg.Rect, text: str, config: TextConfig=TextConfig()):
+    def __init__(self,
+                 rect: pg.Rect,
+                 text: str,
+                 config: TextConfig = TextConfig()):
         super().__init__()
 
         self.rect = rect
@@ -103,7 +107,7 @@ class Text(WidgetBase):
             (x.get_height() for x in line_surfaces),
             initial=margin.top)
 
-        blit_target_create_func: t.Callable[[pg.surface.Surface, int, int], _BlitTarget]
+        blit_target_create_func: t.Callable[[pg.surface.Surface, int, int], _BlitTarget] # noqa
         if self.config.align == TextAlign.LEFT:
             blit_target_create_func = self._create_blit_target_left
         elif self.config.align == TextAlign.RIGHT:
@@ -122,7 +126,7 @@ class Text(WidgetBase):
         text_img.blits(blit_targets, False)
 
         if config.fit == TextFit.FIT:
-            _logger.warning('Using fit=TextFit.FIT forces text surface to resize leading to low text quality.')
+            _logger.warning('Using fit=TextFit.FIT forces text surface to resize leading to low text quality.') # noqa
 
             scale_size = (
                 min(text_img.get_width(), self.rect.width),
@@ -179,6 +183,7 @@ class Text(WidgetBase):
             (
                 (width - surf.get_width()) // 2 + margin.left,
                 y_offset))
+
 
 # TODO: Move logging to config validation
 _logger = logging.getLogger(__name__)
