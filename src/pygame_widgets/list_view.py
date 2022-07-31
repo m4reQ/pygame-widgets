@@ -56,7 +56,7 @@ class ListView(WidgetBase, t.Generic[_ItemType]):
 
     def _render_image(self) -> None:
         for i, item in enumerate(self._items):
-            pos: tuple[int, int]
+            pos: t.Tuple[int, int]
             if self.config.orient == ListOrient.HORIZONTAL:
                 pos = (
                     self.rect.left + self._current_offset,
