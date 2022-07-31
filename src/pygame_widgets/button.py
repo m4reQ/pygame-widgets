@@ -3,12 +3,13 @@ Adds button widgets.
 '''
 
 import dataclasses
+import enum
 import typing as t
 
 import pygame as pg
 
-from pygame_widgets import internal
-from pygame_widgets.widget import WidgetBase
+from pygame_widgets import internal, utils
+from pygame_widgets.widget import StateHandle, WidgetBase
 
 pg.font.init()
 
@@ -38,8 +39,12 @@ class ButtonConfig:
     on_hover: t.Callable[[], t.Any] = lambda: None
     on_release: t.Callable[[], t.Any] = lambda: None
 
+class _ButtonState(enum.Enum):
+    ACTIVE = enum.auto()
+    INACTIVE = enum.auto()
+    HOVER = enum.auto()
 
-class Button(WidgetBase):
+class Button(WidgetBase, StateHandle[_ButtonState]):
     '''
     A simple button that can use image as a background
     and have different properties based on its current
@@ -50,13 +55,14 @@ class Button(WidgetBase):
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, rect: pg.Rect, config: ButtonConfig=ButtonConfig()):
-        super().__init__()
+        super().__init__([
+            (pg.MOUSEBUTTONDOWN, self._mouse_click_cb),
+            (pg.MOUSEBUTTONUP, self._mouse_release_cb),
+            (pg.MOUSEMOTION, self._cursor_move_cb)])
 
         self.config = config
         self.rect: pg.Rect = rect
 
-        self._cursor_in_box = False
-        self._is_clicked = False
         self._is_disabled = config.is_disabled
         self._activate_button = config.activate_button
         self._activate_on_hover = config.activate_on_hover
@@ -69,16 +75,9 @@ class Button(WidgetBase):
         self._active_image = self._render_image(True)
 
         self.image = self._inactive_image
+        self.mask = pg.mask.from_surface(self.image, threshold=0) if config.collide_on_mask else None
 
-        self.mask: pg.Mask | None = None
-        if config.collide_on_mask:
-            self.mask = pg.mask.from_surface(
-                self.image,
-                threshold=0)
-
-        internal.add_event_handler(pg.MOUSEBUTTONDOWN, self._mouse_click_cb)
-        internal.add_event_handler(pg.MOUSEBUTTONUP, self._mouse_release_cb)
-        internal.add_event_handler(pg.MOUSEMOTION, self._cursor_move_cb)
+        self.state = _ButtonState.INACTIVE
 
     def _render_image(self, active: bool) -> pg.Surface:
         config = self.config
@@ -122,70 +121,56 @@ class Button(WidgetBase):
         return img
 
     def _cursor_move_cb(self, event: pg.event.Event) -> None:
-        if self._is_disabled:
+        if self._is_disabled or self.state == _ButtonState.ACTIVE:
             return
 
-        cursor_in_box = self._check_cursor_in_box(event.pos)
-        if not cursor_in_box and self._cursor_in_box:
-            self._hover = False
-        elif cursor_in_box and not self._cursor_in_box:
-            internal.schedule_call(self._on_hover_func)
-            self._hover = True
+        collision = utils.collide_point(event.pos, self.rect, self.mask)
+        if collision:
+            if self._on_hover_func:
+                self._on_hover_func()
+
+            self.state = _ButtonState.HOVER
         else:
-            return
+            self.state = _ButtonState.INACTIVE
 
-        self._cursor_in_box = cursor_in_box
+        # TODO: Remove unnecessary draw getting called when transitioning
+        # from hover to inactive even if _activate_on_hover is set to False (no change in image)
+        if self.state_changed:
+            self.redraw()
 
     def _mouse_click_cb(self, event: pg.event.Event) -> None:
         if self._is_disabled:
             return
 
-        if event.button != self._activate_button or not self._cursor_in_box:
+        collision = utils.collide_point(event.pos, self.rect, self.mask)
+        if not collision or event.button != self._activate_button:
             return
 
         if self._on_click_func:
-            internal.schedule_call(self._on_click_func)
+            self._on_click_func()
 
-        self._is_clicked = True
-        self.needs_redraw = True
+        self.state = _ButtonState.ACTIVE
+        if self.state_changed:
+            self.redraw()
 
     def _mouse_release_cb(self, event: pg.event.Event) -> None:
-        if self._is_disabled:
-            return
-
-        if event.button != self._activate_button or not self._is_clicked:
+        if self._is_disabled or event.button != self._activate_button:
             return
 
         if self._on_release_func:
-            internal.schedule_call(self._on_release_func)
+            self._on_release_func()
 
-        self._is_clicked = False
-        self.needs_redraw = True
+        self.state = _ButtonState.INACTIVE
+        if self.state_changed:
+            self.redraw()
 
-    def redraw(self) -> None:
-        super().redraw()
-
-        if self._activate_on_hover:
-            if self._hover:
-                self.image = self._active_image
-            else:
-                self.image = self._inactive_image
-
-            return
-
-        if self._is_clicked:
-            self.image = self._active_image
-        else:
+    def redraw(self, *args, **kwargs) -> None:
+        if self.state == _ButtonState.INACTIVE:
             self.image = self._inactive_image
-
-    def _check_cursor_in_box(self, pos: tuple[int, int]) -> bool:
-        if self.mask:
-            pos = (
-                pos[0] - self.rect.x,
-                pos[1] - self.rect.y)
-            return self.mask.get_at(pos) != 0
-
-        return self.rect.collidepoint(pos)
+            self.dirty = 1
+        elif self.state == _ButtonState.ACTIVE or (self.state == _ButtonState.HOVER and self._activate_on_hover):
+            self.image = self._active_image
+            self.dirty = 1
 
     def set_enabled(self, value: bool) -> None:
         self._is_disabled = not value
