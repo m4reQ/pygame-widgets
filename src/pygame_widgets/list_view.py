@@ -4,7 +4,7 @@ import typing as t
 
 import pygame as pg
 
-from pygame_widgets.widget import WidgetBase
+from pygame_widgets.internal import ConfigBase, WidgetBase
 
 
 class ListOrient(enum.Enum):
@@ -13,7 +13,7 @@ class ListOrient(enum.Enum):
 
 
 @dataclasses.dataclass
-class ListViewConfig:
+class ListViewConfig(ConfigBase):
     # TODO: validate these two fields basing on orient # noqa
     item_width: int = 0
     item_height: int = 0

@@ -9,11 +9,11 @@ import typing as t
 
 import pygame as pg
 
-from pygame_widgets.widget import StateHandle, WidgetBase
+from pygame_widgets.internal import ConfigBase, StateHandle, WidgetBase
 
 
 @dataclasses.dataclass
-class ProgressBarConfig:
+class ProgressBarConfig(ConfigBase):
     '''
     Configuration structure for
     `ProgressBar` widget.
@@ -45,6 +45,7 @@ class ProgressBar(WidgetBase, StateHandle[int]):
         self.state = 0
 
         self._bg_image = self._render_bg_image()
+        self._bar_image = self._render_bar_image()
         self.image = self._bg_image
 
     def redraw(self) -> None:
@@ -52,22 +53,13 @@ class ProgressBar(WidgetBase, StateHandle[int]):
             math.ceil(self.rect.width / self.max_progress * self.state),
             self.rect.width)
 
-        if self.config.use_progress_as_mask:
-            self.image = self._bg_image.subsurface(
-                0,
-                0,
-                bar_width,
-                self.rect.height)
-        else:
-            self.image = self._bg_image
-            bar_color = self.config.bar_color
-
-            bar_image = pg.Surface(
-                (bar_width, self.rect.height),
-                pg.SRCALPHA if bar_color.a != 255 else 0)
-            bar_image.fill(bar_color)
-            self.image.blit(bar_image, (0, 0))
-
+        self.image = self._bg_image
+        self.image.blit(self._bar_image.subsurface(
+            0,
+            0,
+            bar_width,
+            self.rect.height),
+            (0, 0))
         self.dirty = 1
 
     def increment_progress(self) -> None:
@@ -98,9 +90,9 @@ class ProgressBar(WidgetBase, StateHandle[int]):
 
         return self.state
 
-    def _render_bg_image(self) -> pg.Surface:
-        bg_color = self.config.bg_color
+    def _render_bar_image(self) -> pg.Surface:
         bar_image = self.config.bar_image
+        bg_color = self.config.bg_color
         rect = self.rect
 
         img: pg.Surface
@@ -114,5 +106,13 @@ class ProgressBar(WidgetBase, StateHandle[int]):
                 rect.size,
                 pg.SRCALPHA if bg_color.a != 255 else 0)
             img.fill(bg_color, pg.Rect(0, 0, *img.get_size()))
+
+        return img
+
+    def _render_bg_image(self) -> pg.Surface:
+        img = pg.Surface(
+            self.rect.size,
+            pg.SRCALPHA if self.config.bg_color.a != 255 else 0)
+        img.fill(self.config.bg_color)
 
         return img

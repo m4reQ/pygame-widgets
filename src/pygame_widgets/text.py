@@ -10,7 +10,7 @@ import typing as t
 
 import pygame as pg
 
-from pygame_widgets.widget import WidgetBase
+from pygame_widgets.internal import ConfigBase, WidgetBase
 
 _BlitTarget = t.Tuple[pg.surface.Surface, t.Tuple[int, int]]
 
@@ -32,7 +32,7 @@ class TextFit(enum.Enum):
 
 
 @dataclasses.dataclass
-class TextConfig:
+class TextConfig(ConfigBase):
     '''
     Configuration structure for
     `Text` widget.

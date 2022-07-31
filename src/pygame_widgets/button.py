@@ -9,11 +9,11 @@ import typing as t
 import pygame as pg
 
 from pygame_widgets import utils
-from pygame_widgets.widget import StateHandle, WidgetBase
+from pygame_widgets.internal import ConfigBase, StateHandle, WidgetBase
 
 
 @dataclasses.dataclass
-class ButtonConfig:
+class ButtonConfig(ConfigBase):
     '''
     Configuration structure for
     `Button` widget.
