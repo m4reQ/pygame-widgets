@@ -39,12 +39,13 @@ class RadioButton(WidgetBase, StateHandle[bool]):
         Current state of the button.
         '''
 
-        return self._is_active
+        return self.state
 
     @is_on.setter
     def is_on(self, value: bool) -> None:
-        self._is_active = value
-        self.redraw(state=value)
+        self.state = value
+        if self.state_changed:
+            self.redraw()
 
     def _render_inactive_image(self) -> pg.Surface:
         config = self.config
