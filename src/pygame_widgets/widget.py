@@ -12,7 +12,7 @@ class WidgetBase(pg.sprite.DirtySprite, abc.ABC):
         super().__init__()
 
         self.needs_redraw = False
-        self.children: list[WidgetBase] = []
+        self.children: t.List[WidgetBase] = []
 
         self._register_event_handlers(event_handlers)
 

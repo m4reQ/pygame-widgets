@@ -29,7 +29,7 @@ _ListItemFactoryType = t.Callable[[pg.Rect, int, _ItemType], WidgetBase]
 class ListView(WidgetBase, t.Generic[_ItemType]):
     def __init__(self,
                  rect: pg.Rect,
-                 items: list[_ItemType],
+                 items: t.List[_ItemType],
                  list_item_factory: _ListItemFactoryType[_ItemType],
                  config: ListViewConfig = ListViewConfig()) -> None:
         super().__init__()
