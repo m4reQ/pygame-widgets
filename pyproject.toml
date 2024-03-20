@@ -4,3 +4,27 @@ requires=[
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygame-widgets"
+version = "0.0.1"
+requires-python = ">=3.12"
+description = "Python library for easier pygame GUI creation."
+readme = "README.md"
+authors = [
+    {name = "m4reQ"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: pygame",
+    "Topic :: Multimedia :: Graphics"
+]
+
+[project.urls]
+Home = "https://github.com/m4reQ/pygame-widgets"
+Issues = "https://github.com/m4reQ/pygame-widgets/issues"
+
+[tool.setuptools]
+packages = ["pygame_widgets"]

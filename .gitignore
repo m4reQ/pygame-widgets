@@ -4,5 +4,5 @@
 **/dist
 **/*.egg-info
 **/.vscode
-**/tests.py
-**/testing
+**/test*
+/build
