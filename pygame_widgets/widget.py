@@ -35,6 +35,9 @@ class Widget(pg.sprite.DirtySprite, abc.ABC):
 
         self.parent: ContainerWidget | None = None
 
+    def set_parent(self, parent: ContainerWidget) -> None:
+        self.parent = parent
+
     def calculate_size(self, max_width: int, max_height: int) -> tuple[int, int]:
         self._needs_recalculate = False
 
@@ -88,7 +91,7 @@ class ContainerWidget(Widget):
 
         self._children = children
         for child in self._children:
-            child.parent = self
+            child.set_parent(self)
 
         self.visible = False
         self.dirty = 0

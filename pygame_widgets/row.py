@@ -1,9 +1,9 @@
-import math
 import uuid
 
 import pygame as pg
 
-from .widget import ContainerWidget, Widget
+from pygame_widgets import _internal
+from pygame_widgets.widget import ContainerWidget, Widget
 
 
 class Row(ContainerWidget):
@@ -24,7 +24,7 @@ class Row(ContainerWidget):
         height = 0
 
         avail_width = max_width - self._spacing * (len(self._children) - 1)
-        self._max_child_width = math.floor(avail_width / len(self._children))
+        self._max_child_width = _internal.divide_with_overflow(avail_width, len(self._children))
 
         x_offset = 0
         for child in self._children:

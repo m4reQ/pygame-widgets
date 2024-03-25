@@ -1,12 +1,29 @@
 import math
+import typing as t
 import uuid
 
 import pygame as pg
 
+from pygame_widgets import _internal
 from pygame_widgets.widget import ContainerWidget, Widget
 
+TElement = t.TypeVar('TElement')
 
 class Column(ContainerWidget):
+    @classmethod
+    def build(cls,
+              values: t.Iterable[TElement],
+              factory: t.Callable[[int, TElement], Widget],
+              *,
+              spacing: int = 0,
+              _id: uuid.UUID | None = None,
+              rect: pg.Rect | None = None) -> None:
+        return cls(
+            [factory(i, x) for i, x in enumerate(values)],
+            spacing=spacing,
+            _id=_id,
+            rect=rect)
+
     def __init__(self,
                  children: list[Widget],
                  *,
@@ -24,7 +41,7 @@ class Column(ContainerWidget):
         width = 0
 
         avail_height = max_height - self._spacing * (len(self._children) - 1)
-        self._max_child_height = math.floor(avail_height / len(self._children))
+        self._max_child_height = _internal.divide_with_overflow(avail_height, len(self._children))
 
         y_offset = 0
         for child in self._children:

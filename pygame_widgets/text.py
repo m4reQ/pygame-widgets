@@ -1,10 +1,10 @@
 import enum
-import math
 import uuid
 
 import pygame as pg
 
-from .widget import Widget
+from pygame_widgets import _internal
+from pygame_widgets.widget import Widget
 
 _BlitTarget = tuple[pg.Surface, tuple[int, int]]
 
@@ -77,8 +77,6 @@ class Text(Widget):
             self._antialiasing,
             self._fg,
             bg_color)
-        # if colorkey is not None:
-        #     result.set_colorkey(colorkey)
 
         return result
 
@@ -99,7 +97,7 @@ class Text(Widget):
         if self._align == TextAlign.RIGHT:
             return avail_width - width
         elif self._align == TextAlign.CENTER:
-            return math.floor((avail_width - width) / 2)
+            return _internal.divide_with_overflow(avail_width - width, 2)
 
         # TextAlign.LEFT
         return 0
@@ -134,19 +132,21 @@ class Text(Widget):
     def calculate_size(self, max_width: int, max_height: int) -> tuple[int, int]:
         super().calculate_size(max_width, max_height)
 
+        required_height = 0
+        required_width = 0
         for line in self._lines:
             line_width, line_height = self._font.size(line)
 
-            self._required_width = max(self._required_width, line_width)
-            self._required_height += line_height + self._line_spacing
+            required_width = max(required_width, line_width)
+            required_height += line_height + self._line_spacing
 
-        self.rect.width = min(max_width, self._required_width)
-        self.rect.height = min(max_height, self._required_height)
+        self.rect.width = min(max_width, required_width)
+        self.rect.height = min(max_height, required_height)
+
+        self._required_width = required_width
+        self._required_height = required_height
 
         return self.rect.size
-
-    def set_placement(self, x: int, y: int) -> None:
-        super().set_placement(x, y)
 
     @property
     def fg(self) -> pg.Color:

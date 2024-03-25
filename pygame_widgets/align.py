@@ -1,9 +1,9 @@
 import enum
-import math
 import uuid
 
 import pygame as pg
 
+from . import _internal
 from .widget import SingleChildContainerWidget, Widget
 
 
@@ -45,13 +45,13 @@ class Align(SingleChildContainerWidget):
     def set_placement(self, x: int, y: int) -> None:
         new_x = x
         if self._horizontal == HAlignment.CENTER:
-            new_x += math.floor(abs(self._available_width - self.rect.width) / 2)
+            new_x += _internal.divide_with_overflow(abs(self._available_width - self.rect.width), 2)
         elif self._horizontal == HAlignment.RIGHT:
             new_x += self._available_width - self.rect.width
 
         new_y = y
         if self._vertical == VAlignment.CENTER:
-            new_y += math.floor(abs(self._available_height - self.rect.height) / 2)
+            new_y += _internal.divide_with_overflow(abs(self._available_height - self.rect.height), 2)
         elif self._vertical == VAlignment.BOTTOM:
             new_y += self._available_height - self.rect.height
 
