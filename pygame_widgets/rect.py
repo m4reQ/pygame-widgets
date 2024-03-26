@@ -20,7 +20,10 @@ class Rect(Widget):
         self._width = width
 
     def redraw(self) -> None:
-        flags = pg.SRCALPHA if self._color.a != 255 else 0
+        flags = 0
+        if self._rounding != 0 or self._color.a != 255:
+            flags = pg.SRCALPHA
+
         self.image = pg.Surface(self.rect.size, flags)
 
         if self._rounding != 0:

@@ -4,28 +4,10 @@ import uuid
 import pygame as pg
 
 from pygame_widgets import _internal
+from pygame_widgets.enums import TextAlign, TextFit
 from pygame_widgets.widget import Widget
 
 _BlitTarget = tuple[pg.Surface, tuple[int, int]]
-
-class TextAlign(enum.Enum):
-    '''
-    An enum used in `Text.__init__(align)`.
-    Represents alignment of text in a widget.
-    '''
-
-    LEFT = enum.auto()
-    RIGHT = enum.auto()
-    CENTER = enum.auto()
-
-class TextFit(enum.Enum):
-    '''
-    An enum used in `Text.__init__(fit)`.
-    Determines if text widget should attempt to fit the
-    text if it doesn't fit inside.
-    '''
-    FIT = enum.auto()
-    CROP = enum.auto()
 
 class Text(Widget):
     DEFAULT_FONT_FAMILY = 'Consolas'

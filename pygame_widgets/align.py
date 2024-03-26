@@ -1,21 +1,11 @@
-import enum
 import uuid
 
 import pygame as pg
 
-from . import _internal
-from .widget import SingleChildContainerWidget, Widget
+from pygame_widgets import _internal
+from pygame_widgets.enums import HAlignment, VAlignment
+from pygame_widgets.widget import SingleChildContainerWidget, Widget
 
-
-class VAlignment(enum.Enum):
-    TOP = enum.auto()
-    BOTTOM = enum.auto()
-    CENTER = enum.auto()
-
-class HAlignment(enum.Enum):
-    LEFT = enum.auto()
-    RIGHT = enum.auto()
-    CENTER = enum.auto()
 
 class Align(SingleChildContainerWidget):
     def __init__(self,

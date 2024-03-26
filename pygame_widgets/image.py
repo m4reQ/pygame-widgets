@@ -1,15 +1,11 @@
-import enum
 import typing as t
 import uuid
 
 import pygame as pg
 
-from .widget import Widget
+from pygame_widgets.enums import ImageFilter
+from pygame_widgets.widget import Widget
 
-
-class ImageFilter(enum.Enum):
-    NEAREST = enum.auto()
-    LINEAR = enum.auto()
 
 class Image(Widget):
     @classmethod

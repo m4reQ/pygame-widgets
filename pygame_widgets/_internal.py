@@ -1,20 +1,19 @@
-import enum
 import math
 
+from pygame_widgets.enums import OverflowBehavior
 
-class OverflowBehavior(enum.Enum):
-    OVERFLOW = enum.auto()
-    UNDERFLOW = enum.auto()
 
 def set_overflow_behavior(behavior: OverflowBehavior) -> None:
     global _overflow_behavior
     _overflow_behavior = behavior
 
-def divide_with_overflow(x: int | float, y: int | float) -> int:
+def round(x: int | float) -> int:
     if _overflow_behavior == OverflowBehavior.OVERFLOW:
-        return math.ceil(x / y)
+        return math.ceil(x)
 
-    # OverflowBehavior.OVERFLOW
-    return math.floor(x / y)
+    return math.floor(x)
+
+def divide_with_overflow(x: int | float, y: int | float) -> int:
+    return round(x / y)
 
 _overflow_behavior = OverflowBehavior.UNDERFLOW

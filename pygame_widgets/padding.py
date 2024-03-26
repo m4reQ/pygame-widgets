@@ -11,6 +11,9 @@ class PaddingValue:
     def __init__(self, x: int) -> None: ...
 
     @t.overload
+    def __init__(self, horizontal: int, vertical: int) -> None: ...
+
+    @t.overload
     def __init__(self, left: int, right: int, top: int, bottom: int) -> None: ...
 
     def __init__(self, *args) -> None:
@@ -19,6 +22,9 @@ class PaddingValue:
             self.right = args[0]
             self.top = args[0]
             self.bottom = args[0]
+        elif len(args) == 2:
+            self.left = self.right = args[0]
+            self.top = self.bottom = args[1]
         elif len(args) == 4:
             self.left = args[0]
             self.right = args[1]

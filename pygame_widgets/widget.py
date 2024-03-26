@@ -6,6 +6,9 @@ import uuid
 
 import pygame as pg
 
+from pygame_widgets import _internal
+from pygame_widgets.enums import MainAxisSize
+
 
 class Widget(pg.sprite.DirtySprite, abc.ABC):
     @staticmethod
@@ -103,6 +106,100 @@ class ContainerWidget(Widget):
     @property
     def children(self) -> list[Widget]:
         return self._children
+
+    @property
+    def children_count(self) -> int:
+        return len(self._children)
+
+class AxialContainer(ContainerWidget):
+    def __init__(self,
+                 children: list[Widget],
+                 spacing: int,
+                 axis: bool,
+                 main_axis_size: MainAxisSize,
+                 _id: uuid.UUID | None = None,
+                 rect: pg.Rect | None = None) -> None:
+        super().__init__(children, _id, rect)
+
+        self._axis = axis
+        self._spacing = spacing
+        self._max_child_space = 0
+        self._main_axis_size = main_axis_size
+
+    def _calculate_available_space(self, max_width: int, max_height: int) -> int:
+        return (max_height if self._axis else max_width) - self._spacing * (self.children_count - 1)
+
+    def _space_children_evenly(self, max_width: int, max_height: int) -> tuple[int, int]:
+        available_space = self._calculate_available_space(max_width, max_height)
+        self._max_child_space = _internal.divide_with_overflow(available_space, self.children_count)
+
+        width_used = height_used = 0
+        for child in self._children:
+            if self._axis:
+                child_width, _ = child.calculate_size(max_width, self._max_child_space)
+
+                width_used = max(width_used, child_width)
+                height_used += self._max_child_space + self._spacing
+            else:
+                _, child_height = child.calculate_size(self._max_child_space, max_height)
+
+                width_used += self._max_child_space + self._spacing
+                height_used = max(height_used, child_height)
+
+        return (width_used, height_used)
+
+    def _space_children_min_size(self, max_width: int, max_height: int) -> tuple[int, int]:
+        available_space = self._calculate_available_space(max_width, max_height)
+        self._max_child_space = _internal.divide_with_overflow(available_space, self.children_count)
+
+        width_used = height_used = 0
+        for child in self._children:
+            if self._axis:
+                child_width, child_height = child.calculate_size(max_width, available_space)
+                child_height += self._spacing
+
+                height_used += child_height
+                width_used = max(width_used, child_width)
+
+                available_space -= child_height
+            else:
+                child_width, child_height = child.calculate_size(available_space, max_height)
+                child_width += self._spacing
+
+                height_used = max(height_used, child_height)
+                width_used += child_width
+
+                available_space -= child_width
+
+        return (width_used, height_used)
+
+    def calculate_size(self, max_width: int, max_height: int) -> tuple[int, int]:
+        super().calculate_size(max_width, max_height)
+
+        if self._main_axis_size == MainAxisSize.EVEN:
+            self.rect.size = self._space_children_evenly(max_width, max_height)
+        else:
+            self.rect.size = self._space_children_min_size(max_width, max_height)
+
+        return self.rect.size
+
+    def set_placement(self, x: int, y: int) -> None:
+        super().set_placement(x, y)
+
+        offset = 0
+        for child in self._children:
+            if self._axis:
+                child.set_placement(x, y + offset)
+            else:
+                child.set_placement(x + offset, y)
+
+            offset_increment: int
+            if self._main_axis_size == MainAxisSize.EVEN:
+                offset_increment = self._max_child_space
+            else:
+                offset_increment = child.rect.height if self._axis else child.rect.width
+
+            offset += offset_increment + self._spacing
 
 class SingleChildContainerWidget(ContainerWidget):
     def __init__(self,
