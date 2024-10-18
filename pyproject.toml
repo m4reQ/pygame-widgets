@@ -6,20 +6,24 @@ requires=[
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pygame-widgets"
+name = "guinea"
 version = "0.0.1"
 requires-python = ">=3.12"
-description = "Python library for easier pygame GUI creation."
+description = "Pygame-powered library for easier pygame GUI creation."
 readme = "README.md"
 authors = [
-    {name = "m4reQ"}
+    { name = "Marek 'm4reQ' Mizerski", email = "m.mizerski4@gmail.com" }
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: pygame",
-    "Topic :: Multimedia :: Graphics"
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Software Development :: User Interfaces"
+]
+dependencies = [
+    "pygame"
 ]
 
 [project.urls]
@@ -27,4 +31,7 @@ Home = "https://github.com/m4reQ/pygame-widgets"
 Issues = "https://github.com/m4reQ/pygame-widgets/issues"
 
 [tool.setuptools]
-packages = ["pygame_widgets"]
+packages = ["guinea"]
+
+[tool.setuptools.package-data]
+guinea = ["assets/*"]
