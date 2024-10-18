@@ -3,32 +3,25 @@ A module for GUI creation in Pygame.
 '''
 
 from ._internal import OverflowBehavior, set_overflow_behavior
-from .align import Align, Center, HAlignment, VAlignment
 from .button import Button
 from .column import Column
+from .container import Container, PaddingValue
 from .events import process_event
 from .fraction import Fraction
 from .fullscreen import Fullscreen
 from .image import Image, ImageFilter
-from .padding import Padding, PaddingValue
-from .rect import Rect
 from .row import MainAxisSize, Row
 from .stack import Stack
 from .text import Text, TextAlign, TextFit
 from .widget import ContainerWidget, SingleChildContainerWidget, Widget
+from .window import Window
 
 __all__ = [
-    'Align',
-    'VAlignment',
-    'HAlignment',
-    'Center',
     'Column',
     'Fullscreen',
     'Image',
     'ImageFilter',
-    'Padding',
     'PaddingValue',
-    'Rect',
     'Row',
     'Widget',
     'ContainerWidget',
@@ -41,4 +34,7 @@ __all__ = [
     'set_overflow_behavior',
     'OverflowBehavior',
     'Stack',
-    'Fraction']
+    'Fraction',
+    'MainAxisSize',
+    'Window',
+    'Container']
