@@ -1,79 +1,70 @@
-import enum
 import uuid
 
 import pygame as pg
 
 from pygame_widgets import _internal
+from pygame_widgets._internal import TargetFill
 from pygame_widgets.enums import TextAlign, TextFit
+from pygame_widgets.shaders import Shader
 from pygame_widgets.widget import Widget
 
 _BlitTarget = tuple[pg.Surface, tuple[int, int]]
 
 class Text(Widget):
-    DEFAULT_FONT_FAMILY = 'Consolas'
     DEFAULT_FONT_SIZE = 24
+    DEFAULT_FG_COLOR = pg.Color(0, 0, 0, 255)
 
     def __init__(self,
                  text: str,
                  *,
-                 fg: pg.Color = pg.Color(0, 0, 0, 255),
-                 bg: pg.Color = pg.Color(0, 0, 0, 0),
+                 fg: TargetFill = DEFAULT_FG_COLOR,
+                 bg: TargetFill | None = None,
                  font: pg.font.Font | None = None,
                  antialiasing: bool = True,
                  line_spacing: int = 0,
                  tab_size: int = 4,
                  fit: TextFit = TextFit.FIT,
                  align: TextAlign = TextAlign.LEFT,
-                 fill_empty_bg: bool = True,
                  _id: uuid.UUID | None = None,
                  rect: pg.Rect | None = None) -> None:
         super().__init__(_id, rect)
 
-        self._lines = [x for x in text.replace('\t', ' ' * tab_size).split('\n') if x != '']
+        self._lines = _split_text_lines(text, tab_size)
         self._fg = fg
         self._bg = bg
         self._align = align
-        self._font = font or pg.font.SysFont(self.DEFAULT_FONT_FAMILY, self.DEFAULT_FONT_SIZE)
+        self._font = font or _internal.FontCache.get_default_of_size(Text.DEFAULT_FONT_SIZE)
         self._antialiasing = antialiasing
         self._line_spacing = line_spacing
         self._tab_size = tab_size
         self._fit = fit
-        self._fill_empty_bg = fill_empty_bg
 
         self._required_width = 0
         self._required_height = 0
 
         self.image = pg.Surface((0, 0))
 
-    def _redraw_on_single_line(self, line: str) -> None:
-        self.image = self._render_line(line)
-
     def _render_line(self, line: str) -> pg.Surface:
-        if self._bg.a == 0:
-            bg_color = None
-        else:
-            bg_color = self._bg
+        if isinstance(self._fg , pg.Color):
+            return self._font.render(
+                line,
+                self._antialiasing,
+                self._fg)
 
-        result = self._font.render(
+        return self._font.render(
             line,
             self._antialiasing,
-            self._fg,
-            bg_color)
+            (255, 255, 255, 255))
 
-        return result
-
-    def _fit_image(self) -> None:
+    def _fit_image(self, img: pg.Surface) -> pg.Surface:
         target_size = (
             min(self._required_width, self.rect.width),
             min(self._required_height, self.rect.height))
 
         if self._fit == TextFit.FIT:
-            # TODO Implement better fit using variable font size (use calculate_size for this)
-            self.image = pg.transform.smoothscale(
-                self.image,
-                target_size)
-        else:
-            self.image = self.image.subsurface((0, 0), target_size)
+            return pg.transform.smoothscale(img, target_size)
+
+        return self.image.subsurface((0, 0), target_size)
 
     def _get_x_alignment(self, avail_width: int, width: int) -> int:
         if self._align == TextAlign.RIGHT:
@@ -84,32 +75,65 @@ class Text(Widget):
         # TextAlign.LEFT
         return 0
 
-    def redraw(self) -> None:
-        if len(self._lines) == 1:
-            self._redraw_on_single_line(self._lines[0])
-            return
-
+    def _generate_blit_targets(self) -> list[_BlitTarget]:
         current_y = 0
-        blit_targets: list[_BlitTarget] = []
+        targets: list[_BlitTarget] = []
+
         for line in self._lines:
-            surf = self._render_line(line)
-            target = (surf, (self._get_x_alignment(self._required_width, surf.get_width()), current_y))
-            blit_targets.append(target)
+            line_surf = self._render_line(line)
+            pos = (
+                self._get_x_alignment(self._required_width, line_surf.get_width()),
+                current_y)
+            targets.append((line_surf, pos))
 
-            current_y += surf.get_height() + self._line_spacing
+            current_y += line_surf.get_height() + self._line_spacing
 
-        flags = 0
-        if self._bg.a == 0 or not self._fill_empty_bg:
-            flags = pg.SRCALPHA
+        return targets
 
-        self.image = pg.Surface((self._required_width, self._required_height), flags)
-        if self._fill_empty_bg and self._bg.a != 0:
-            self.image.fill(self._bg)
+    def redraw(self) -> None:
+        # render text background
+        surface_flags = 0
+        if self._bg is None:
+            surface_flags = pg.SRCALPHA
+        else:
+            surface_flags = _internal.get_surface_flags_for_target_fill(self._bg)
+        src_img = pg.Surface(
+            (self._required_width, self._required_height),
+            surface_flags)
 
-        self.image.blits(blit_targets, False)
+        if self._bg is not None:
+            if isinstance(self._bg, pg.Color):
+                src_img.fill(self._bg)
+            elif isinstance(self._bg, pg.Surface):
+                src_img.blit(
+                    pg.transform.smoothscale(self._bg, src_img.get_size()),
+                    (0, 0))
+            else: # isinstance(self._bg, Shader)
+                self._bg.draw(src_img, False)
 
+        # render text
+        targets = self._generate_blit_targets()
+        if isinstance(self._fg, pg.Color):
+            src_img.blits(targets)
+        else:
+            text_img = pg.Surface(src_img.get_size(), pg.SRCALPHA)
+            text_img.blits(targets)
+
+            if isinstance(self._fg, pg.Surface):
+                text_img.blit(
+                pg.transform.smoothscale(self._fg, text_img.get_size()),
+                (0, 0),
+                special_flags=pg.BLEND_RGBA_MIN)
+            else: # isinstance(self._fg, Shader)
+                self._fg.draw(text_img, True)
+
+            src_img.blit(text_img, (0, 0))
+
+        # crop image according to used text
         if self._required_width > self.rect.width or self._required_height > self.rect.height:
-            self._fit_image()
+            src_img = self._fit_image(src_img)
+
+        self.image = src_img
 
     def calculate_size(self, max_width: int, max_height: int) -> tuple[int, int]:
         super().calculate_size(max_width, max_height)
@@ -130,20 +154,5 @@ class Text(Widget):
 
         return self.rect.size
 
-    @property
-    def fg(self) -> pg.Color:
-        return self._fg
-
-    @fg.setter
-    def fg(self, value: pg.Color) -> None:
-        self._fg = value
-        self._needs_redraw = True
-
-    @property
-    def bg(self) -> pg.Color:
-        return self._bg
-
-    @bg.setter
-    def bg(self, value: pg.Color) -> None:
-        self._bg = value
-        self._needs_redraw = True
+def _split_text_lines(text: str, tab_size: int) -> list[str]:
+    return [x for x in text.replace('\t', ' ' * tab_size).split('\n') if x != '']

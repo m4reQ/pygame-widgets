@@ -4,11 +4,11 @@ import uuid
 import pygame as pg
 
 from pygame_widgets.enums import MainAxisSize
-from pygame_widgets.widget import AxialContainer, Widget
+from pygame_widgets.widget import AxialContainerWidget, Widget
 
 TElement = t.TypeVar('TElement')
 
-class Row(AxialContainer):
+class Row(AxialContainerWidget):
     @classmethod
     def build(cls,
               values: t.Iterable[TElement],

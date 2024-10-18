@@ -38,6 +38,17 @@ class Widget(pg.sprite.DirtySprite, abc.ABC):
 
         self.parent: ContainerWidget | None = None
 
+    def set_layer(self, layer: int) -> None:
+        group = self.groups()[0]
+        if isinstance(group, pg.sprite.LayeredUpdates):
+            group.change_layer(self, layer)
+
+    def set_visible(self, is_visible: bool) -> None:
+        self.visible = is_visible
+
+    def kill(self) -> None:
+        super().kill()
+
     def set_parent(self, parent: ContainerWidget) -> None:
         self.parent = parent
 
@@ -71,6 +82,7 @@ class Widget(pg.sprite.DirtySprite, abc.ABC):
 
         if self._needs_redraw:
             self.redraw()
+            self._needs_redraw = False
 
             self.dirty = 1
 
@@ -99,7 +111,25 @@ class ContainerWidget(Widget):
         self.visible = False
         self.dirty = 0
 
-    # container widgets do not have to be redrawn
+    def set_layer(self, layer: int) -> None:
+        for child in self._children:
+            child.set_layer(layer)
+
+        super().set_layer(layer)
+
+    def set_visible(self, is_visible: bool) -> None:
+        for child in self._children:
+            child.set_visible(is_visible)
+
+        super().set_visible(is_visible)
+
+    def kill(self) -> None:
+        for child in self._children:
+            child.kill()
+
+        super().kill()
+
+    # container widgets generally do not have to be redrawn (Window is an exception)
     def redraw(self) -> None:
         pass
 
@@ -111,7 +141,7 @@ class ContainerWidget(Widget):
     def children_count(self) -> int:
         return len(self._children)
 
-class AxialContainer(ContainerWidget):
+class AxialContainerWidget(ContainerWidget):
     def __init__(self,
                  children: list[Widget],
                  spacing: int,
@@ -127,7 +157,8 @@ class AxialContainer(ContainerWidget):
         self._main_axis_size = main_axis_size
 
     def _calculate_available_space(self, max_width: int, max_height: int) -> int:
-        return (max_height if self._axis else max_width) - self._spacing * (self.children_count - 1)
+        spacing_required = self._spacing * (self.children_count - 1)
+        return (max_height if self._axis else max_width) - spacing_required
 
     def _space_children_evenly(self, max_width: int, max_height: int) -> tuple[int, int]:
         available_space = self._calculate_available_space(max_width, max_height)
@@ -146,6 +177,11 @@ class AxialContainer(ContainerWidget):
                 width_used += self._max_child_space + self._spacing
                 height_used = max(height_used, child_height)
 
+        if self._axis:
+            height_used -= self._spacing
+        else:
+            width_used -= self._spacing
+
         return (width_used, height_used)
 
     def _space_children_min_size(self, max_width: int, max_height: int) -> tuple[int, int]:
@@ -154,6 +190,9 @@ class AxialContainer(ContainerWidget):
 
         width_used = height_used = 0
         for child in self._children:
+            if available_space < 0:
+                break
+
             if self._axis:
                 child_width, child_height = child.calculate_size(max_width, available_space)
                 child_height += self._spacing
@@ -170,6 +209,11 @@ class AxialContainer(ContainerWidget):
                 width_used += child_width
 
                 available_space -= child_width
+
+        if self._axis:
+            height_used -= self._spacing
+        else:
+            width_used -= self._spacing
 
         return (width_used, height_used)
 

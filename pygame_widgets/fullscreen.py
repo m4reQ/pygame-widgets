@@ -35,12 +35,12 @@ class Fullscreen(SingleChildContainerWidget):
     def calculate_size(self, max_width: int, max_height: int) -> tuple[int, int]:
         super().calculate_size(max_width, max_height)
 
-        child_width, child_height = self.child.calculate_size(self.rect.width, self.rect.height)
+        self.rect.width = max_width
+        self.rect.height = max_height
 
-        self.rect.width = child_width
-        self.rect.height = child_height
+        self.child.calculate_size(max_width, max_height)
 
-        return (child_width, child_height)
+        return self.rect.size
 
     def set_placement(self, x: int, y: int) -> None:
         super().set_placement(x, y)

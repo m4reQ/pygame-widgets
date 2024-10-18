@@ -10,13 +10,14 @@ from .events import process_event
 from .fraction import Fraction
 from .fullscreen import Fullscreen
 from .image import Image, ImageFilter
+from .progress_bar import ProgressBar
 from .row import MainAxisSize, Row
 from .stack import Stack
 from .text import Text, TextAlign, TextFit
 from .widget import ContainerWidget, SingleChildContainerWidget, Widget
 from .window import Window
 
-__all__ = [
+__all__ = (
     'Column',
     'Fullscreen',
     'Image',
@@ -37,4 +38,5 @@ __all__ = [
     'Fraction',
     'MainAxisSize',
     'Window',
-    'Container']
+    'Container',
+    'ProgressBar')
