@@ -206,7 +206,7 @@ class Window(Widget):
         minimize_btn_img = _get_minimize_btn_img(self._is_minimized, self._btn_width)
         self.image.blit(minimize_btn_img, (self._btn_margin, self._btn_margin))
 
-        close_btn_img = _internal._ImageCache.try_get_image('./assets/window_close_btn.png', False)
+        close_btn_img = _internal._ImageCache.try_get_image('./assets/window_close_btn.png', False, True)
         close_btn_img = pg.transform.smoothscale(
             close_btn_img,
             (self._btn_width, self._btn_width))
@@ -312,8 +312,8 @@ def _calculate_border_collide_rects(base_rect: pg.Rect, tolerance: int) -> list[
 def _get_minimize_btn_img(is_minimized: bool, btn_width: int) -> pg.Surface:
     img: pg.Surface
     if is_minimized:
-        img = _internal._ImageCache.try_get_image('./assets/window_minimize_btn_inactive.png', False)
+        img = _internal._ImageCache.try_get_image('./assets/window_minimize_btn_inactive.png', False, True)
     else:
-        img = _internal._ImageCache.try_get_image('./assets/window_minimize_btn_active.png', False)
+        img = _internal._ImageCache.try_get_image('./assets/window_minimize_btn_active.png', False, True)
 
     return pg.transform.smoothscale(img, (btn_width, btn_width))
